@@ -1,0 +1,10 @@
+^C:\USERS\ISC_LAPTOP4\DESKTOP\PROJECT_PATHS_MOST_WALKED\CMAKEOUT\CMAKEFILES\72F4FC03267E78C245A86164ADA5EAC7\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/isc_laptop4/Desktop/Project_paths_most_walked -BC:/Users/isc_laptop4/Desktop/Project_paths_most_walked/cmakeOut --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/isc_laptop4/Desktop/Project_paths_most_walked/cmakeOut/OpenCvExemple.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

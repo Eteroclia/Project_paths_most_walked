@@ -1,0 +1,8 @@
+[
+{
+  "directory": "C:/Users/isc_laptop4/Desktop/Project_paths_most_walked/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe   -g -o CMakeFiles\\OpenCvExemple.dir\\camera_calibration.cpp.obj -c C:\\Users\\isc_laptop4\\Desktop\\Project_paths_most_walked\\camera_calibration.cpp",
+  "file": "C:/Users/isc_laptop4/Desktop/Project_paths_most_walked/camera_calibration.cpp",
+  "output": "CMakeFiles/OpenCvExemple.dir/camera_calibration.cpp.obj"
+}
+]

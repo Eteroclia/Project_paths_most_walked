@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.10)
+project(OpenCvExemple)
+set(OpenCV_FOUND 1)
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+add_executable(OpenCvExemple camera_calibration.cpp)
+target_link_libraries(OpenCvExemple ${OpenCV_LIBS})
