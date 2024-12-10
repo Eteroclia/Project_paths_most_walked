@@ -1,6 +1,7 @@
 #include "opencv2/opencv.hpp"
 #include <opencv2/highgui/highgui.hpp>
 #include "iostream"
+#include <string>
 
 int showImage() {
     std::string path = "cat.jpg";
@@ -21,9 +22,9 @@ int showWebCameraContent() {
     // create a window to display the images from the webcam
     cv::namedWindow("Webcam");
     int cam=0;
+    char saved='a';
     // this will contain the image from the webcam
     cv::Mat frame;
-    
     // display the frame until you press a key
     while (1) {
         // capture the next frame from the webcam
@@ -38,13 +39,23 @@ int showWebCameraContent() {
                 break;
            camera.open(cam,cv::CAP_DSHOW);
            printf("Now showing %i\n",cam);
-        }else if(cv::waitKey(10) == 'a'){
+        }else if(cv::waitKey(5) == 'a'){
             cam--;
             
             if(cam<0)
                 break;
            camera.open(cam,cv::CAP_DSHOW);
            printf("Now showing %i\n",cam);
+        }else if(cv::waitKey(5)=='s'){
+            printf("saving image\n");
+            char out[]="./images/img1.png";
+            printf(out);
+            printf("\n");
+            out[12]=saved;
+            printf(out);
+            printf("\n");
+            saved++;
+            cv::imwrite(out, frame);
         }
     }
     return 0;

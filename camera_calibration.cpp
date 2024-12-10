@@ -98,9 +98,9 @@ public:
             cerr << "Invalid number of frames " << nrFrames << endl;
             goodInput = false;
         }
-
-        if (input.empty())      // Check for valid input
+        if (input.empty()){      // Check for valid input
                 inputType = INVALID;
+        }
         else
         {
             if (input[0] >= '0' && input[0] <= '9')

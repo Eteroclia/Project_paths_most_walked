@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/isc_laptop4/Desktop/Project_paths_most_walked
+# Install script for directory: C:/Users/Loïc/OneDrive/Desktop/HES/Project_paths_most_walked
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -35,7 +35,7 @@ endif()
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "C:/Users/isc_laptop4/Desktop/Project_paths_most_walked/cmakeOut/install_local_manifest.txt"
+  file(WRITE "C:/Users/Loïc/OneDrive/Desktop/HES/Project_paths_most_walked/cmakeOut/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()
 if(CMAKE_INSTALL_COMPONENT)
@@ -51,6 +51,6 @@ else()
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "C:/Users/isc_laptop4/Desktop/Project_paths_most_walked/cmakeOut/${CMAKE_INSTALL_MANIFEST}"
+  file(WRITE "C:/Users/Loïc/OneDrive/Desktop/HES/Project_paths_most_walked/cmakeOut/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()

@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="C:\Users\isc_laptop4\Desktop\Project_paths_most_walked\camera_calibration.cpp">
+    <ClCompile Include="C:\Users\Loïc\OneDrive\Desktop\HES\Project_paths_most_walked\camera_calib2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Users\isc_laptop4\Desktop\Project_paths_most_walked\CMakeLists.txt" />
+    <CustomBuild Include="C:\Users\Loïc\OneDrive\Desktop\HES\Project_paths_most_walked\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{286CCAF9-4595-3E2C-8EA2-0BFF53659E74}</UniqueIdentifier>
+      <UniqueIdentifier>{CC555BA6-7512-384A-B058-FCD8AD274FE9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
