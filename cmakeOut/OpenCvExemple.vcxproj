@@ -332,7 +332,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="C:\Users\Loïc\OneDrive\Desktop\HES\Project_paths_most_walked\camera_calib2.cpp" />
+    <ClCompile Include="C:\Users\Loïc\OneDrive\Desktop\HES\Project_paths_most_walked\disparityTest.cpp" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
