@@ -23,7 +23,7 @@ int uniquenessRatio = 15;
 int speckleRange = 0;
 int speckleWindowSize = 0;
 int disp12MaxDiff = -1;
-float M = 0.0;
+float M = 4.4075000000000003e+01;
 
 
 cv::Mat imgL;
@@ -36,7 +36,7 @@ cv::Mat output_canvas;
 // These parameters can vary according to the setup
 float max_depth = 400.0; //maximum distance the setup can measure (in cm)
 float min_depth = 50.0; //minimum distance the setup can measure (in cm)
-float depth_thresh = 50.0; // Threshold for SAFE distance (in cm)
+float depth_thresh = 150.0; // Threshold for SAFE distance (in cm)
 
 // function to sort contours from largest to smallest
 bool compareContourAreas ( std::vector<cv::Point> contour1, std::vector<cv::Point> contour2 ) {
@@ -66,6 +66,30 @@ void obstacle_avoid()
     // sorting contours from largest to smallest
     std::sort(contours.begin(), contours.end(), compareContourAreas);
 
+    for(int i=0;i<contours.size();i++){
+      std::vector<cv::Point> cnt=contours[i];
+      // Check if detected contour is significantly large (to avoid multiple tiny regions)
+      double cnt_area = fabs(cv::contourArea(cv::Mat(cnt)));
+      if (cnt_area > 0.01*img_area)
+      {
+          cv::Rect box;
+
+          // Finding the bounding rectangle for the largest contour
+          box = cv::boundingRect(cnt);
+
+          // finding average depth of region represented by the largest contour
+          mask2 = mask*0;
+          cv::drawContours(mask2, contours, 0, (255), -1);
+
+          // Calculating the average depth of the object closer than the safe distance
+          cv::meanStdDev(depth_map, mean, stddev, mask2);
+          
+          cv::rectangle(output_canvas, box, cv::Scalar(0, 255, 0));
+        
+
+      }
+    }
+
     // extracting the largest contour
     std::vector<cv::Point> cnt = contours[0];
 
@@ -85,18 +109,6 @@ void obstacle_avoid()
         // Calculating the average depth of the object closer than the safe distance
         cv::meanStdDev(depth_map, mean, stddev, mask2);
 
-        // Printing the warning text with object distance
-        char text[10];
-        std::sprintf(text, "%.2f cm",mean.at<double>(0,0));
-        try{
-            cv::putText(output_canvas, "WARNING!", cv::Point2f(box.x + 5, box.y-40), 1, 2, cv::Scalar(0,0,255), 2, 2);
-            cv::putText(output_canvas, "Object at", cv::Point2f(box.x + 5, box.y), 1, 2, cv::Scalar(0,0,255), 2, 2);
-            cv::putText(output_canvas, text, cv::Point2f(box.x + 5, box.y+40), 1, 2, cv::Scalar(0,0,255), 2, 2);
-        }catch(int i){
-            1;
-        }
-      
-
     }
   }
   else
@@ -108,6 +120,7 @@ void obstacle_avoid()
 
   // Displaying the output of the obstacle avoidance system
   cv::imshow("output_canvas",output_canvas);
+  cv::imshow("mask",mask);
 }
 
 // Creating an object of StereoBM algorithm
@@ -171,12 +184,11 @@ static void on_trackbar11( int, void* )
 {
   stereo->setMinDisparity(minDisparity);
 }
- 
 
 int main()
 {
     
-
+    /*
     // Reading the stored the StereoBM parameters
     cv::FileStorage cv_file = cv::FileStorage("./data/depth_estimation_params_cpp.xml", cv::FileStorage::READ);
     cv_file["numDisparities"] >> numDisparities;
@@ -190,7 +202,7 @@ int main()
     cv_file["speckleRange"] >> speckleRange;
     cv_file["speckleWindowSize"] >> speckleWindowSize;
     cv_file["disp12MaxDiff"] >> disp12MaxDiff;
-    cv_file["M"] >> M;
+    cv_file["M"] >> M;*/
     
     // updating the parameter values of the StereoBM algorithm
     stereo->setNumDisparities(numDisparities);
@@ -210,7 +222,7 @@ int main()
     cv::Mat Right_Stereo_Map1, Right_Stereo_Map2;
 
     // Reading the mapping values for stereo image rectification
-    cv::FileStorage cv_file2 = cv::FileStorage("./data/stereo_rectify_maps.xml", cv::FileStorage::READ);
+    cv::FileStorage cv_file2 = cv::FileStorage("data/stereo_rectify_maps.xml", cv::FileStorage::READ);
     cv_file2["Left_Stereo_Map_x"] >> Left_Stereo_Map1;
     cv_file2["Left_Stereo_Map_y"] >> Left_Stereo_Map2;
     cv_file2["Right_Stereo_Map_x"] >> Right_Stereo_Map1;
@@ -219,10 +231,11 @@ int main()
 
     // Check for left and right camera IDs
     // These values can change depending on the system
-    int CamL_id{1}; // Camera ID for left camera
-    int CamR_id{0}; // Camera ID for right camera
+    int CamL_id{0}; // Camera ID for left camera
+    int CamR_id{1}; // Camera ID for right camera
 
-    cv::VideoCapture camL(CamL_id,cv::CAP_DSHOW), camR(CamR_id,cv::CAP_DSHOW);
+    cv::VideoCapture camL(CamL_id,cv::CAP_DSHOW);
+    cv::VideoCapture camR(CamR_id,cv::CAP_DSHOW);
 
     // Check if left camera is attched
     if (!camL.isOpened())
@@ -240,6 +253,9 @@ int main()
 
     cv::namedWindow("disparity",cv::WINDOW_NORMAL);
     cv::resizeWindow("disparity",600,600);
+
+    cv::namedWindow("depth",cv::WINDOW_NORMAL);
+    cv::resizeWindow("depth",600,600);
 
   // Creating trackbars to dynamically update the StereoBM parameters
     cv::createTrackbar("numDisparities", "disparity", &numDisparities, 18, on_trackbar1);
@@ -267,25 +283,27 @@ int main()
     cv::cvtColor(imgL, imgL_gray, cv::COLOR_BGR2GRAY);
     cv::cvtColor(imgR, imgR_gray, cv::COLOR_BGR2GRAY);
 
-    // Initialize matrix for rectified stero images
-    cv::Mat Left_nice, Right_nice;
 
+    // Initialize matrix for rectified stereo images
+    cv::Mat Left_nice;
+    cv::Mat Right_nice;
     // Applying stereo image rectification on the left image
     cv::remap(imgL_gray,
-              Left_nice,
-              Left_Stereo_Map1,
-              Left_Stereo_Map2,
-              cv::INTER_LANCZOS4,
-              cv::BORDER_CONSTANT,
-              0);
+            Left_nice,
+            Left_Stereo_Map1,
+            Left_Stereo_Map2,
+            cv::INTER_LANCZOS4,
+            cv::BORDER_CONSTANT,
+            0);
+
     // Applying stereo image rectification on the right image
     cv::remap(imgR_gray,
-              Right_nice,
-              Right_Stereo_Map1,
-              Right_Stereo_Map2,
-              cv::INTER_LANCZOS4,
-              cv::BORDER_CONSTANT,
-              0);
+            Right_nice,
+            Right_Stereo_Map1,
+            Right_Stereo_Map2,
+            cv::INTER_LANCZOS4,
+            cv::BORDER_CONSTANT,
+            0);
 
     // Calculating disparith using the StereoBM algorithm
     stereo->compute(Left_nice,Right_nice,disp);
@@ -298,7 +316,7 @@ int main()
     disp.convertTo(disparity,CV_32F, 1.0);
 
     // Scaling down the disparity values and normalizing them
-    disparity = (disparity/(float)16.0 - (float)minDisparity)/((float)numDisparities);
+    disparity = (disparity/16.0f - (float)minDisparity)/((float)numDisparities);
 
     // Calculating disparity to depth map using the following equation
     // ||    depth = M * (1/disparity)   ||
@@ -309,6 +327,7 @@ int main()
 
     // Displaying the disparity map
     cv::imshow("disparity",disparity);
+    cv::imshow("depth",depth_map);
 
     // Close window using esc key
     if (cv::waitKey(1) == 27) break;

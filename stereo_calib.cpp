@@ -144,8 +144,8 @@ int main()
   flag |= cv::CALIB_FIX_INTRINSIC;
 
 
-  // This step is performed to transformation between the two cameras and calculate Essential and 
-  // Fundamenatl matrix
+  // This step is performed to transform between the two cameras and calculate Essential and 
+  // Fundamental matrix
   cv::stereoCalibrate(objpoints,
                       imgpointsL,
                       imgpointsR,
@@ -202,6 +202,40 @@ int main()
                               CV_16SC2,
                               Right_Stereo_Map1,
                               Right_Stereo_Map2);
+
+  // Initialize matrix for rectified stereo images
+  cv::Mat Left_nice;
+  cv::Mat Right_nice;
+
+
+  frameL = cv::imread(imagesL[0]);
+  cv::cvtColor(frameL,grayL,cv::COLOR_BGR2GRAY);
+
+  frameR = cv::imread(imagesR[0]);
+  cv::cvtColor(frameR,grayR,cv::COLOR_BGR2GRAY);
+
+  // Applying stereo image rectification on the left image
+  cv::remap(grayL,
+          Left_nice,
+          Left_Stereo_Map1,
+          Left_Stereo_Map2,
+          cv::INTER_LANCZOS4,
+          cv::BORDER_CONSTANT,
+          0);
+
+  // Applying stereo image rectification on the right image
+  cv::remap(grayR,
+          Right_nice,
+          Right_Stereo_Map1,
+          Right_Stereo_Map2,
+          cv::INTER_LANCZOS4,
+          cv::BORDER_CONSTANT,
+          0);
+  
+  cv::imshow("ImageL",Left_nice);
+  cv::imshow("ImageR",Right_nice);
+  cv::waitKey(0);
+  cv::destroyAllWindows();
 
   cv::FileStorage cv_file = cv::FileStorage("data/stereo_rectify_maps.xml", cv::FileStorage::WRITE);
   cv_file.write("Left_Stereo_Map_x",Left_Stereo_Map1);
