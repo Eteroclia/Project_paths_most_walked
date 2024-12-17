@@ -2,7 +2,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "iostream"
 #include <string>
-#include <tuple>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <stdio.h>
@@ -15,13 +14,13 @@ class calibration{
         cv::VideoCapture cameraLeft;
         cv::VideoCapture cameraRight;
 
-
+    calibration(){}
     calibration(int leftCamId,int rightCamId){
         cameraLeft.open(leftCamId,cv::CAP_DSHOW);
         cameraRight.open(rightCamId,cv::CAP_DSHOW);
     }
     
-    std::tuple<cv::Mat,cv::Mat> getImage() {
+    std::vector<cv::Mat> getImage() {
         // open the first webcam plugged in the computer
         if (!cameraLeft.isOpened()||!cameraRight.isOpened()) {
             std::cerr << "ERROR: Could not open camera" << std::endl;
@@ -35,10 +34,10 @@ class calibration{
         cameraLeft >> frameLeft;
         cameraRight >> frameRight;
 
-        return std::tuple<cv::Mat,cv::Mat>(frameLeft,frameRight);
+        return std::vector<cv::Mat>{frameLeft,frameRight};
     }
 
-    std::tuple<cv::Mat,cv::Mat,cv::Mat,cv::Mat> getStereoMatrixes(std::tuple<cv::Mat,cv::Mat> frames){
+    std::vector<cv::Mat> getStereoMatrixes(std::vector<std::vector<cv::Mat>> frames){
         // Defining the dimensions of checkerboard
         int CHECKERBOARD[2]{6,9}; 
         // Creating vector to store vectors of 3D points for each checkerboard image
@@ -58,40 +57,44 @@ class calibration{
         std::vector<cv::Point2f> corner_ptsL, corner_ptsR;
         bool successL, successR;
 
-        frameL = std::get<0>(frames);
-        cv::cvtColor(frameL,grayL,cv::COLOR_BGR2GRAY);
+        for(int i{0}; i<frames.size(); i++){
+            frameL = frames[i][0];
+            cv::cvtColor(frameL,grayL,cv::COLOR_BGR2GRAY);
 
-        frameR = std::get<1>(frames);
-        cv::cvtColor(frameR,grayR,cv::COLOR_BGR2GRAY);
+            frameR = frames[i][1];
+            cv::cvtColor(frameR,grayR,cv::COLOR_BGR2GRAY);
 
-        // Finding checker board corners
-        // If desired number of corners are found in the image then success = true  
-        successL = cv::findChessboardCorners(grayL,cv::Size(CHECKERBOARD[0],CHECKERBOARD[1]),corner_ptsL);
-        // cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FAST_CHECK | cv::CALIB_CB_NORMALIZE_IMAGE);
+            // Finding checker board corners
+            // If desired number of corners are found in the image then success = true  
+            successL = cv::findChessboardCorners(grayL,cv::Size(CHECKERBOARD[0],CHECKERBOARD[1]),corner_ptsL);
+            // cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FAST_CHECK | cv::CALIB_CB_NORMALIZE_IMAGE);
 
-        successR = cv::findChessboardCorners(grayR,cv::Size(CHECKERBOARD[0],CHECKERBOARD[1]),corner_ptsR);
-        // cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FAST_CHECK | cv::CALIB_CB_NORMALIZE_IMAGE);
-        /*
-        * If desired number of corner are detected,
-        * we refine the pixel coordinates and display 
-        * them on the images of checker board
-        */
-        if((successL) && (successR))
-        {
-            cv::TermCriteria criteria(cv::TermCriteria::EPS | cv::TermCriteria::MAX_ITER, 30, 0.001);
+            successR = cv::findChessboardCorners(grayR,cv::Size(CHECKERBOARD[0],CHECKERBOARD[1]),corner_ptsR);
+            // cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FAST_CHECK | cv::CALIB_CB_NORMALIZE_IMAGE);
+            /*
+            * If desired number of corner are detected,
+            * we refine the pixel coordinates and display 
+            * them on the images of checker board
+            */
+            if((successL) && (successR))
+            {
+                cv::TermCriteria criteria(cv::TermCriteria::EPS | cv::TermCriteria::MAX_ITER, 30, 0.001);
 
-            // refining pixel coordinates for given 2d points.
-            cv::cornerSubPix(grayL,corner_ptsL,cv::Size(11,11), cv::Size(-1,-1),criteria);
-            cv::cornerSubPix(grayR,corner_ptsR,cv::Size(11,11), cv::Size(-1,-1),criteria);
+                // refining pixel coordinates for given 2d points.
+                cv::cornerSubPix(grayL,corner_ptsL,cv::Size(11,11), cv::Size(-1,-1),criteria);
+                cv::cornerSubPix(grayR,corner_ptsR,cv::Size(11,11), cv::Size(-1,-1),criteria);
 
-            // Displaying the detected corner points on the checker board
-            //cv::drawChessboardCorners(frameL, cv::Size(CHECKERBOARD[0],CHECKERBOARD[1]), corner_ptsL,successL);
-            //cv::drawChessboardCorners(frameR, cv::Size(CHECKERBOARD[0],CHECKERBOARD[1]), corner_ptsR,successR);
+                // Displaying the detected corner points on the checker board
+                //cv::drawChessboardCorners(frameL, cv::Size(CHECKERBOARD[0],CHECKERBOARD[1]), corner_ptsL,successL);
+                //cv::drawChessboardCorners(frameR, cv::Size(CHECKERBOARD[0],CHECKERBOARD[1]), corner_ptsR,successR);
 
-            objpoints.push_back(objp);
-            imgpointsL.push_back(corner_ptsL);
-            imgpointsR.push_back(corner_ptsR);
+                objpoints.push_back(objp);
+                imgpointsL.push_back(corner_ptsL);
+                imgpointsR.push_back(corner_ptsR);
+            }
         }
+
+        
         cv::Mat mtxL,distL,R_L,T_L;
         cv::Mat mtxR,distR,R_R,T_R;
         /*
@@ -149,7 +152,7 @@ class calibration{
 
         // Applying stereo image rectification on the right image
         cv::remap(grayR,Right_nice,Right_Stereo_Map1,Right_Stereo_Map2,cv::INTER_LANCZOS4,cv::BORDER_CONSTANT,0);
-        return std::tuple<cv::Mat,cv::Mat,cv::Mat,cv::Mat>(Left_Stereo_Map1,Left_Stereo_Map2,Right_Stereo_Map1,Right_Stereo_Map2);
+        return std::vector<cv::Mat>{Left_Stereo_Map1,Left_Stereo_Map2,Right_Stereo_Map1,Right_Stereo_Map2};
     }
 };
 
@@ -158,7 +161,7 @@ class depthDetection{
     public:
         cv::VideoCapture cameraLeft;
         cv::VideoCapture cameraRight;
-        // initialize values for StereoSGBM parameters
+        // initialize values for StereoS GBM parameters
         int numDisparities = 8;
         int blockSize = 5;
         int preFilterType = 1;
@@ -187,7 +190,7 @@ class depthDetection{
         cv::Mat Left_Stereo_Map1, Left_Stereo_Map2;
         cv::Mat Right_Stereo_Map1, Right_Stereo_Map2;
 
-
+    depthDetection(){}
     depthDetection(int leftCamId,int rightCamId){
         cameraLeft.open(leftCamId,cv::CAP_DSHOW);
         cameraRight.open(rightCamId,cv::CAP_DSHOW);
@@ -195,15 +198,15 @@ class depthDetection{
         updateStereo();
     }
     void updateStereo(){
-        stereo->setNumDisparities(numDisparities);
-        stereo->setBlockSize(blockSize);
+        stereo->setNumDisparities(numDisparities*16);
+        stereo->setBlockSize(blockSize*2+5);
         stereo->setPreFilterType(preFilterType);
-        stereo->setPreFilterSize(preFilterSize);
+        stereo->setPreFilterSize(preFilterSize*2+5);
         stereo->setPreFilterCap(preFilterCap);
         stereo->setTextureThreshold(textureThreshold);
         stereo->setUniquenessRatio(uniquenessRatio);
         stereo->setSpeckleRange(speckleRange);
-        stereo->setSpeckleWindowSize(speckleWindowSize);
+        stereo->setSpeckleWindowSize(speckleWindowSize*2);
         stereo->setDisp12MaxDiff(disp12MaxDiff);
         stereo->setMinDisparity(minDisparity);
     }
@@ -307,7 +310,3 @@ class depthDetection{
         return boundingBoxes;
     }
 };
-
-int main(){
-  return 0;
-}
