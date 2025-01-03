@@ -120,7 +120,7 @@ void obstacle_avoid()
 
   // Displaying the output of the obstacle avoidance system
   cv::imshow("output_canvas",output_canvas);
-  cv::imshow("mask",mask);
+  //cv::imshow("mask",mask);
 }
 
 // Creating an object of StereoBM algorithm
